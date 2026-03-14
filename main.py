@@ -43,6 +43,13 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
     """
     Streams the LoopAgent's reasoning steps and tool outputs as SSE.
     """
+    headers = {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache, no-transform",
+        "Connection": "keep-alive",
+        "X-Accel-Buffering": "no",  # Critical for Nginx/Cloud Run responsiveness
+    }
+
     async def event_generator():
         from google.genai import types
         
@@ -97,7 +104,7 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                     continue
                     
                 yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip()})}\n\n"
-                await asyncio.sleep(0.05) # Smoother streaming
+                await asyncio.sleep(0.01) # Ultra-fast flush
                 
         except Exception as e:
             import traceback
@@ -105,7 +112,7 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
             print(f"ERROR: {error_msg}\n{traceback.format_exc()}")
             yield f"data: {json.dumps({'type': 'log', 'content': f'⚠️ {error_msg}'})}\n\n"
 
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
+    return StreamingResponse(event_generator(), headers=headers, media_type="text/event-stream")
 
 @app.post("/chat")
 async def chat(request: Request):
