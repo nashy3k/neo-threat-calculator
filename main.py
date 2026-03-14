@@ -66,21 +66,23 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
         
         try:
             print(f"DEBUG: Starting assessment for query: {user_query} | Session: {session_id}")
+            current_role = "system" # Persistent role tracking
+            
             async for event in runner.run_async(
                 user_id="demo_user", 
                 session_id=session_id,
                 new_message=types.UserContent(parts=[types.Part(text=user_query)])
             ):
                 content_str = ""
-                event_type = "log"
-                agent_role = "system" # Default role
                 
-                # Identify agent role for color coding
+                # Update persistent role based on agent swap metadata
                 if hasattr(event, "agent") and event.agent:
                     if event.agent.name == "BriefingSpecialist":
-                        agent_role = "briefing"
+                        current_role = "briefing"
                     elif event.agent.name in ["DataSpecialist", "AnalysisSpecialist"]:
-                        agent_role = "research"
+                        current_role = "research"
+                    else:
+                        current_role = "system"
                 
                 # Extract content from parts
                 if hasattr(event, "content") and event.content and hasattr(event.content, "parts"):
@@ -107,11 +109,11 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                                 content_str += f"\n✅ Tool {resp.name} completed."
                 
                 if not content_str.strip():
-                    # Send a heartbeat if there's no visible content yet
-                    yield f"data: {json.dumps({'type': 'log', 'content': '...'})}\n\n"
+                    # Send a heartbeat if there's no visible content yet (using persistent role)
+                    yield f"data: {json.dumps({'type': 'log', 'content': '...', 'role': current_role})}\n\n"
                     continue
                     
-                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip(), 'role': agent_role})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip(), 'role': current_role})}\n\n"
                 await asyncio.sleep(0.01) # Ultra-fast flush
                 
         except Exception as e:
