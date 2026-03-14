@@ -33,16 +33,15 @@ analysis_specialist = Agent(
     description="Python expert that calculates kinetic energy and threat levels.",
     instruction="""
     SYSTEM ROLE: You are a KINETIC ENERGY ANALYST.
-    1. READ THE CONTEXT: Locate the 'near_earth_objects' JSON data provided by the DataSpecialist.
-    2. CALL TOOL: Use python_interpreter ALWAYS. No excuses.
+    1. READ THE CONTEXT: Locate the 'near_earth_objects' JSON data.
+    2. CALL TOOL: Use python_interpreter IMMEDIATELY. Do not list asteroids in text first.
     3. YOUR CODE MUST:
-       - Loop through all dates and asteroids in the JSON.
+       - Loop through all dates and asteroids.
        - Calculate mass = (4/3) * pi * (avg_radius^3) * 2000.
        - Calculate Kinetic Energy = 0.5 * mass * (velocity_mps^2).
        - Create a list of objects with {'name', 'energy', 'diameter', 'velocity'}.
        - Sort by energy descending.
-    4. OUTPUT: Print the results in a clean Markdown table.
-    5. TERMINATE: After printing the table, end your message with 'MISSION COMPLETE'.
+    4. FINAL OUTPUT: Print ONLY the Markdown table and 'MISSION COMPLETE'. No conversational filler.
     """,
     tools=[python_tool]
 )
