@@ -289,6 +289,7 @@
         const cpuText = document.getElementById('cpu-usage');
         
         let loopCount = 0;
+        let currentSessionId = 'session-' + Math.random().toString(36).substring(2, 15);
 
         function setSystemStatus(status) {
             if (status === 'thinking') {
@@ -369,13 +370,18 @@
         }
 
         async function startAssessment() {
+            // Generate a fresh session ID on initialization to act as a "hard reset" for the agent's memory
+            currentSessionId = 'session-' + Math.random().toString(36).substring(2, 15);
+            loopCount = 0;
+            cpuText.textContent = loopCount;
+
             const query = document.getElementById('query-input').value;
             logStream.innerHTML = '';
             setSystemStatus('thinking');
             threatBoard.innerHTML = '<div style="text-align:center; padding-top: 50px; opacity: 0.5;">REQUESTING NASA TELEMETRY...</div>';
             appendLog(`Initializing Agentic Loop for: "${query}"`, 'action');
             
-            const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(query)}`);
+            const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(query)}&session_id=${currentSessionId}`);
             
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
@@ -414,7 +420,7 @@
             setSystemStatus('thinking');
             appendLog(`Issuing Order: "${message}"`, 'action');
             
-            const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(message)}`);
+            const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(message)}&session_id=${currentSessionId}`);
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 if (data.type === 'telemetry') {

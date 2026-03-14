@@ -39,7 +39,7 @@ session_service = InMemorySessionService()
 artifact_service = InMemoryArtifactService()
 
 @app.get("/stream-assessment")
-async def stream_assessment(user_query: str = "Identify major NEO threats"):
+async def stream_assessment(user_query: str = "Identify major NEO threats", session_id: str = "neo_live_stream"):
     """
     Streams the LoopAgent's reasoning steps and tool outputs as SSE.
     """
@@ -58,10 +58,10 @@ async def stream_assessment(user_query: str = "Identify major NEO threats"):
         )
         
         try:
-            print(f"DEBUG: Starting assessment for query: {user_query}")
+            print(f"DEBUG: Starting assessment for query: {user_query} | Session: {session_id}")
             async for event in runner.run_async(
                 user_id="demo_user", 
-                session_id="neo_live_stream",
+                session_id=session_id,
                 new_message=types.UserContent(parts=[types.Part(text=user_query)])
             ):
                 content_str = ""
