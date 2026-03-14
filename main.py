@@ -67,39 +67,36 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                 content_str = ""
                 event_type = "log"
                 
-                # Debug print
-                print(f"DEBUG Event: {type(event)}")
-
-                # Extract tool responses (Telemetry)
-                if hasattr(event, "actions") and event.actions:
-                    actions = event.actions
-                    if hasattr(actions, "function_responses") and actions.function_responses:
-                        for resp in actions.function_responses:
-                            if resp.name == "get_asteroids":
+                # Extract content from parts
+                if hasattr(event, "content") and event.content and hasattr(event.content, "parts"):
+                    for p in event.content.parts:
+                        # 1. Text
+                        if hasattr(p, "text") and p.text:
+                            content_str += p.text
+                            
+                        # 2. Function Call
+                        elif hasattr(p, "function_call") and p.function_call:
+                            content_str += f"\n🚀 EXECUTING TOOL: {p.function_call.name}"
+                            
+                        # 3. Function Response (Telemetry)
+                        elif hasattr(p, "function_response") and p.function_response:
+                            resp = p.function_response
+                            if resp.name == "fetch_neo_data_func":
                                 tel_content = resp.response
                                 if isinstance(tel_content, str):
                                     try: tel_content = json.loads(tel_content)
                                     except: pass
                                 yield f"data: {json.dumps({'type': 'telemetry', 'content': tel_content})}\n\n"
-                                print(f"📡 Telemetry relayed: {resp.name}")
-                        content_str = "📡 SENSOR DATA RECEIVED. ASSEMBLING THREAT TABLE..."
-                    
-                    elif hasattr(actions, "function_calls") and actions.function_calls:
-                        content_str = f"🚀 EXECUTING: {actions.function_calls[0].name}"
-
-                # Extract Textual Content (Thoughts)
-                if not content_str and hasattr(event, "content") and event.content:
-                    if hasattr(event.content, "parts"):
-                        parts = [p.text for p in event.content.parts if hasattr(p, 'text') and p.text]
-                        if parts:
-                            content_str = "".join(parts)
+                                content_str += "\n📡 SENSOR DATA RECEIVED. ASSEMBLING THREAT TABLE..."
+                            else:
+                                content_str += f"\n✅ Tool {resp.name} completed."
                 
-                if not content_str:
+                if not content_str.strip():
                     # Send a heartbeat if there's no visible content yet
                     yield f"data: {json.dumps({'type': 'log', 'content': '...'})}\n\n"
                     continue
                     
-                yield f"data: {json.dumps({'type': 'log', 'content': content_str})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip()})}\n\n"
                 await asyncio.sleep(0.05) # Smoother streaming
                 
         except Exception as e:
