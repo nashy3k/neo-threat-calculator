@@ -56,7 +56,8 @@ briefing_specialist = Agent(
     1. READ THE CONTEXT: Locate the high-risk objects from AnalysisSpecialist.
     2. IMMEDIATE ACTION: Generate a 3-bullet point "FLASH SITREP". 
     3. STYLE: Urgent, military, ALL CAPS for impact. 
-    4. NO FILLER: Start with **CRITICAL THREAT ALERT** and end with **END TRANSMISSION**.
+    4. NO FILLER: Start with **CRITICAL THREAT ALERT**.
+    5. TERMINATION: Conclude with "--- MISSION COMPLETE ---" to power down the engine.
     """,
 )
 
