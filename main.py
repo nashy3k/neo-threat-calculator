@@ -75,15 +75,29 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
             ):
                 content_str = ""
                 
-                # Update persistent role based on agent swap metadata
+                # Robust Agent Role Identification (Scavenger Hunt)
+                agent_name = None
+                
+                # Case 1: event itself is an agent-like object or has .agent
                 if hasattr(event, "agent") and event.agent:
-                    if event.agent.name == "BriefingSpecialist":
+                    agent_name = getattr(event.agent, "name", None)
+                # Case 2: event has agent_turn
+                elif hasattr(event, "agent_turn") and event.agent_turn:
+                    turn_agent = getattr(event.agent_turn, "agent", None)
+                    if turn_agent:
+                        agent_name = getattr(turn_agent, "name", None)
+                # Case 3: event has a name (some events are the agent objects themselves)
+                elif hasattr(event, "name") and not hasattr(event, "content"):
+                    agent_name = event.name
+
+                if agent_name:
+                    if agent_name == "BriefingSpecialist":
                         current_role = "briefing"
-                    elif event.agent.name in ["DataSpecialist", "AnalysisSpecialist"]:
+                    elif agent_name in ["DataSpecialist", "AnalysisSpecialist"]:
                         current_role = "research"
                     else:
                         current_role = "system"
-                
+
                 # Extract content from parts
                 if hasattr(event, "content") and event.content and hasattr(event.content, "parts"):
                     for p in event.content.parts:
@@ -93,23 +107,28 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                             
                         # 2. Function Call
                         elif hasattr(p, "function_call") and p.function_call:
+                            # Color coding for tools: stays in researcher role if researcher is calling
                             content_str += f"\n🚀 EXECUTING TOOL: {p.function_call.name}"
                             
                         # 3. Function Response (Telemetry)
                         elif hasattr(p, "function_response") and p.function_response:
                             resp = p.function_response
-                            if resp.name == "fetch_neo_data_func":
+                            if resp.name in ["fetch_neo_data_func", "calculate_asteroid_kinetic_energy"]:
                                 tel_content = resp.response
                                 if isinstance(tel_content, str):
                                     try: tel_content = json.loads(tel_content)
                                     except: pass
                                 yield f"data: {json.dumps({'type': 'telemetry', 'content': tel_content})}\n\n"
-                                content_str += "\n📡 SENSOR DATA RECEIVED. ASSEMBLING THREAT TABLE..."
+                                
+                                if resp.name == "fetch_neo_data_func":
+                                    content_str += "\n📡 SENSOR DATA RECEIVED. ASSEMBLING THREAT TABLE..."
+                                else:
+                                    content_str += "\n⚡ KINETIC CALCULATIONS COMPLETE. THREAT LEVEL QUANTIFIED."
                             else:
                                 content_str += f"\n✅ Tool {resp.name} completed."
                 
                 if not content_str.strip():
-                    # Send a heartbeat if there's no visible content yet (using persistent role)
+                    # Pass the current role to heartbeats so they don't look like 'system' errors
                     yield f"data: {json.dumps({'type': 'log', 'content': '...', 'role': current_role})}\n\n"
                     continue
                     

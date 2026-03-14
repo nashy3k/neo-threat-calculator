@@ -25,3 +25,32 @@ async def fetch_neo_data_func(days_count: int = 7) -> dict:
             return data
         except Exception as e:
             return {"error": f"Failed to fetch NASA data: {str(e)}"}
+
+async def calculate_asteroid_kinetic_energy(diameter_km: float, velocity_km_s: float, density_kg_m3: float = 3000) -> dict:
+    """
+    Calculates the estimated kinetic energy of an asteroid impact in Megatons of TNT.
+    Formula: E = 0.5 * mass * velocity^2
+    Mass is estimated using the diameter and assumed density (default 3000 kg/m3 for stony asteroids).
+    """
+    import math
+    try:
+        # Radius in meters
+        radius_m = (diameter_km * 1000) / 2
+        # Volume in m3
+        volume_m3 = (4/3) * math.pi * (radius_m**3)
+        # Mass in kg
+        mass_kg = volume_m3 * density_kg_m3
+        # Velocity in m/s
+        velocity_m_s = velocity_km_s * 1000
+        # Energy in Joules
+        energy_j = 0.5 * mass_kg * (velocity_m_s**2)
+        # Convert to Megatons (1 Mt = 4.184e15 Joules)
+        energy_mt = energy_j / 4.184e15
+        
+        return {
+            "mass_kg": f"{mass_kg:.2e}",
+            "impact_energy_mt": f"{energy_mt:.2f} Megatons",
+            "comparison": "Hiroshima bomb was ~0.015 Mt. Tsar Bomba was ~50 Mt."
+        }
+    except Exception as e:
+        return {"error": f"Calculation failed: {str(e)}"}
