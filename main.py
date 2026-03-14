@@ -21,6 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+async def root():
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/static/index.html")
+
 @app.get("/health")
 async def health():
     return {"status": "operational", "project": "adk-beta-1", "agent": "NEOCommander"}
