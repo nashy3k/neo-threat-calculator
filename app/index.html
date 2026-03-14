@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEO Threat Board | Control Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Inter:wght@300;400;700&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --bg-color: #05070a;
@@ -19,7 +22,8 @@
             --warning: #ffb800;
         }
 
-        body, html {
+        body,
+        html {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -36,7 +40,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: 
+            background-image:
                 linear-gradient(var(--border-color) 1px, transparent 1px),
                 linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
             background-size: 50px 50px;
@@ -53,7 +57,8 @@
             gap: 15px;
             padding: 15px;
             box-sizing: border-box;
-            overflow: hidden; /* Prevent the dashboard itself from scrolling */
+            overflow: hidden;
+            /* Prevent the dashboard itself from scrolling */
         }
 
         /* Header */
@@ -78,7 +83,8 @@
             margin: 0;
             background: linear-gradient(90deg, #fff, var(--accent-glow));
             -webkit-background-clip: text;
-            background-clip: text; /* Added for lint fix */
+            background-clip: text;
+            /* Added for lint fix */
             -webkit-text-fill-color: transparent;
         }
 
@@ -100,9 +106,23 @@
         }
 
         @keyframes pulse {
-            0% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
-            70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 10px rgba(0, 255, 157, 0); }
-            100% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+            0% {
+                transform: scale(0.8);
+                opacity: 0.5;
+                box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7);
+            }
+
+            70% {
+                transform: scale(1.1);
+                opacity: 1;
+                box-shadow: 0 0 0 10px rgba(0, 255, 157, 0);
+            }
+
+            100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+                box-shadow: 0 0 0 0 rgba(0, 255, 157, 0);
+            }
         }
 
         /* Left Panel - Control */
@@ -126,7 +146,8 @@
             opacity: 0.7;
         }
 
-        input, button {
+        input,
+        button {
             width: 100%;
             background: #000;
             border: 1px solid var(--border-color);
@@ -202,7 +223,8 @@
             display: flex;
             flex-direction: column;
             box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
-            min-height: 0; /* CRITICAL: Allows child to scroll within flex parent */
+            min-height: 0;
+            /* CRITICAL: Allows child to scroll within flex parent */
         }
 
         .log-header {
@@ -229,21 +251,67 @@
             scroll-behavior: smooth;
         }
 
-        .log-entry { margin-bottom: 10px; opacity: 0; animation: fadeIn 0.5s forwards; }
-        .log-entry.thought { color: #8892b0; border-left: 2px solid #334155; padding-left: 10px; }
-        .log-entry.action { color: var(--accent-glow); }
-        .log-entry.observation { color: var(--warning); padding: 5px; background: rgba(255, 184, 0, 0.05); }
-        .log-entry.final { color: #fff; font-size: 1rem; border: 1px dashed var(--log-color); padding: 10px; }
+        .log-entry {
+            margin-bottom: 10px;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .log-entry.thought {
+            color: #8892b0;
+            border-left: 2px solid #334155;
+            padding-left: 10px;
+        }
+
+        .log-entry.action {
+            color: var(--accent-glow);
+        }
+
+        .log-entry.observation {
+            color: var(--warning);
+            padding: 5px;
+            background: rgba(255, 184, 0, 0.05);
+        }
+
+        .log-entry.final {
+            color: #fff;
+            font-size: 1rem;
+            border: 1px dashed var(--log-color);
+            padding: 10px;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
 
         /* Scrollbar */
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--accent-glow); }
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-color);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-glow);
+        }
     </style>
 </head>
+
 <body>
     <div class="grid-overlay"></div>
     <div class="dashboard">
@@ -274,8 +342,10 @@
                     AWAITING TELEMETRY DATA...
                 </div>
             </div>
-            <div class="chat-console" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; gap: 10px;">
-                <input type="text" id="chat-input" placeholder="Enter tactical order (e.g. 'Zoom in on object 2023 JD2')..." style="flex-grow: 1;">
+            <div class="chat-console"
+                style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; gap: 10px;">
+                <input type="text" id="chat-input"
+                    placeholder="Enter tactical order (e.g. 'Zoom in on object 2023 JD2')..." style="flex-grow: 1;">
                 <button id="chat-btn" onclick="sendTacticalOrder()" style="width: 100px; margin: 0;">SEND</button>
             </div>
         </main>
@@ -296,7 +366,7 @@
         const statusBadge = document.querySelector('.status-badge');
         const statusText = document.getElementById('system-status');
         const cpuText = document.getElementById('cpu-usage');
-        
+
         let loopCount = 0;
         let currentSessionId = 'session-' + Math.random().toString(36).substring(2, 15);
 
@@ -316,10 +386,10 @@
             const div = document.createElement('div');
             div.className = `log-entry ${type}`;
             const timestamp = new Date().toLocaleTimeString([], { hour12: true, minute: '2-digit', second: '2-digit' });
-            
+
             let color = '#00f2ff'; // Default Cyan
             let prefix = '>';
-            
+
             if (role === 'briefing') {
                 color = '#ff9100'; // Orange (SITREP)
                 prefix = '🚨';
@@ -333,7 +403,7 @@
 
             div.innerHTML = `<span style="opacity: 0.5">[${timestamp}]</span> <span style="color: ${color}">${prefix} ${text}</span>`;
             logStream.appendChild(div);
-            
+
             // Robust auto-scroll
             setTimeout(() => {
                 logStream.scrollTo({
@@ -345,15 +415,15 @@
 
         function renderTelemetry(data) {
             console.log("Rendering telemetry:", data);
-            
+
             // Compatibility: Sometimes ADK sends JSON strings inside logs
             let neoData = data;
             if (typeof data === 'string') {
-                try { neoData = JSON.parse(data); } catch(e) { return; }
+                try { neoData = JSON.parse(data); } catch (e) { return; }
             }
 
             if (!neoData || !neoData.near_earth_objects) return;
-            
+
             const objects = [];
             Object.values(neoData.near_earth_objects).forEach(dateGroup => {
                 objects.push(...dateGroup);
@@ -376,13 +446,13 @@
             `;
 
             const tbody = document.getElementById('threat-rows');
-            objects.sort((a,b) => b.is_potentially_hazardous_asteroid - a.is_potentially_hazardous_asteroid);
+            objects.sort((a, b) => b.is_potentially_hazardous_asteroid - a.is_potentially_hazardous_asteroid);
 
             objects.forEach(obj => {
                 const tr = document.createElement('tr');
                 const isHazard = obj.is_potentially_hazardous_asteroid;
                 const diameter = obj.estimated_diameter.kilometers.estimated_diameter_max.toFixed(2);
-                const velocity = parseFloat(obj.close_approach_data[0].relative_velocity.kilometers_per_hour).toLocaleString(undefined, {maximumFractionDigits: 0});
+                const velocity = parseFloat(obj.close_approach_data[0].relative_velocity.kilometers_per_hour).toLocaleString(undefined, { maximumFractionDigits: 0 });
 
                 tr.innerHTML = `
                     <td style="padding: 10px; color: var(--accent-glow)">${obj.name}</td>
@@ -405,18 +475,18 @@
             setSystemStatus('thinking');
             threatBoard.innerHTML = '<div style="text-align:center; padding-top: 50px; opacity: 0.5;">REQUESTING NASA TELEMETRY...</div>';
             appendLog(`Initializing Agentic Loop for: "${query}"`, 'action');
-            
+
             const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(query)}&session_id=${currentSessionId}`);
-            
+
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                
+
                 if (data.type === 'telemetry') {
                     renderTelemetry(data.content);
                 } else if (data.type === 'log') {
                     loopCount++;
                     cpuText.textContent = loopCount;
-                    
+
                     if (data.content.includes("MISSION COMPLETE") || data.content.includes("ORDER EXECUTED")) {
                         appendLog(data.content, "final", data.role);
                         setSystemStatus('idle');
@@ -438,11 +508,11 @@
             const input = document.getElementById('chat-input');
             const message = input.value;
             if (!message) return;
-            
+
             input.value = '';
             setSystemStatus('thinking');
             appendLog(`Issuing Order: "${message}"`, 'action');
-            
+
             const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(message)}&session_id=${currentSessionId}`);
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
@@ -467,5 +537,5 @@
         }
     </script>
 </body>
-</html>
 
+</html>

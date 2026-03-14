@@ -17,7 +17,7 @@ kinetic_tool = FunctionTool(calculate_asteroid_kinetic_energy)
 # Step 2: Define the Data Specialist
 data_specialist = Agent(
     name="DataSpecialist",
-    model="gemini-3-flash-preview", # Use 2.0 Flash for maximum speed
+    model="gemini-2.5-flash", # Use 2.0 Flash for maximum speed
     description="Expert at fetching NASA Near-Earth Object data.",
     instruction="""
     1. Fetch asteroid data for the next 7 days using fetch_neo_data.
@@ -29,7 +29,7 @@ data_specialist = Agent(
 # Step 3: Define the Analysis Specialist
 analysis_specialist = Agent(
     name="AnalysisSpecialist",
-    model="gemini-3-flash-preview",
+    model="gemini-2.5-flash",
     description="Python expert that calculates kinetic energy and threat levels.",
     instruction="""
     SYSTEM ROLE: KINETIC ENERGY ANALYST.
@@ -44,7 +44,7 @@ analysis_specialist = Agent(
 # Step 4: Define the Briefing Specialist (New Wow Factor)
 briefing_specialist = Agent(
     name="BriefingSpecialist",
-    model="gemini-3-flash-preview",
+    model="gemini-2.5-flash",
     description="Military communications expert who summarizes threat tables into urgent executive briefings.",
     instruction="""
     SYSTEM ROLE: STRATEGIC COMMUNICATIONS.
