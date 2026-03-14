@@ -77,6 +77,7 @@
             margin: 0;
             background: linear-gradient(90deg, #fff, var(--accent-glow));
             -webkit-background-clip: text;
+            background-clip: text; /* Added for lint fix */
             -webkit-text-fill-color: transparent;
         }
 
@@ -151,7 +152,7 @@
         /* Center Panel - Main Viewports */
         .main-viewport {
             display: grid;
-            grid-template-rows: 1fr 200px;
+            grid-template-rows: 1fr 100px;
             gap: 15px;
         }
 
@@ -192,6 +193,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+            min-height: 0; /* CRITICAL: Allows child to scroll within flex parent */
         }
 
         .log-header {
@@ -240,7 +242,7 @@
             <h1>NEO Threat Commander</h1>
             <div class="status-badge">
                 <div class="pulse"></div>
-                SYSTEM: ONLINE | BUFFER: <span id="cpu-usage">660MB</span>
+                SYSTEM: ONLINE | <span id="system-status-label">LOOPS</span>: <span id="cpu-usage">0</span>
             </div>
         </header>
 
@@ -263,9 +265,9 @@
                     AWAITING TELEMETRY DATA...
                 </div>
             </div>
-            <div class="data-vis" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px;">
-                <!-- Placeholder for future canvas visualization -->
-                <canvas id="radar-vis"></canvas>
+            <div class="chat-console" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; display: flex; gap: 10px;">
+                <input type="text" id="chat-input" placeholder="Enter tactical order (e.g. 'Zoom in on object 2023 JD2')..." style="flex-grow: 1;">
+                <button id="chat-btn" onclick="sendTacticalOrder()" style="width: 100px; margin: 0;">SEND</button>
             </div>
         </main>
 
@@ -282,18 +284,95 @@
     <script>
         const logStream = document.getElementById('log-stream');
         const threatBoard = document.getElementById('threat-board');
+        const statusBadge = document.querySelector('.status-badge');
+        const statusText = statusBadge.querySelector('span');
+        const cpuText = document.getElementById('cpu-usage');
+        
+        let loopCount = 0;
+
+        function setSystemStatus(status) {
+            if (status === 'thinking') {
+                statusBadge.querySelector('.pulse').style.background = 'var(--warning)';
+                statusBadge.style.color = 'var(--warning)';
+                statusText.innerHTML = 'ENGINE: ANALYZING';
+            } else {
+                statusBadge.querySelector('.pulse').style.background = 'var(--log-color)';
+                statusBadge.style.color = 'var(--log-color)';
+                statusText.innerHTML = 'SYSTEM: IDLE';
+            }
+        }
 
         function appendLog(text, type = 'log') {
             const div = document.createElement('div');
             div.className = `log-entry ${type}`;
             div.textContent = `> [${new Date().toLocaleTimeString()}] ${text}`;
             logStream.appendChild(div);
-            logStream.scrollTop = logStream.scrollHeight;
+            
+            // Robust auto-scroll
+            setTimeout(() => {
+                logStream.scrollTo({
+                    top: logStream.scrollHeight,
+                    behavior: 'smooth'
+                });
+            }, 10);
+        }
+
+        function renderTelemetry(data) {
+            console.log("Rendering telemetry:", data);
+            
+            // Compatibility: Sometimes ADK sends JSON strings inside logs
+            let neoData = data;
+            if (typeof data === 'string') {
+                try { neoData = JSON.parse(data); } catch(e) { return; }
+            }
+
+            if (!neoData || !neoData.near_earth_objects) return;
+            
+            const objects = [];
+            Object.values(neoData.near_earth_objects).forEach(dateGroup => {
+                objects.push(...dateGroup);
+            });
+
+            if (objects.length === 0) return;
+
+            threatBoard.innerHTML = `
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr>
+                            <th style="padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left;">DESIGNATION</th>
+                            <th style="padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left;">Ø (KM)</th>
+                            <th style="padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left;">VELOCITY</th>
+                            <th style="padding: 10px; border-bottom: 1px solid var(--border-color); text-align: left;">HAZARD</th>
+                        </tr>
+                    </thead>
+                    <tbody id="threat-rows"></tbody>
+                </table>
+            `;
+
+            const tbody = document.getElementById('threat-rows');
+            objects.sort((a,b) => b.is_potentially_hazardous_asteroid - a.is_potentially_hazardous_asteroid);
+
+            objects.forEach(obj => {
+                const tr = document.createElement('tr');
+                const isHazard = obj.is_potentially_hazardous_asteroid;
+                const diameter = obj.estimated_diameter.kilometers.estimated_diameter_max.toFixed(2);
+                const velocity = parseFloat(obj.close_approach_data[0].relative_velocity.kilometers_per_hour).toLocaleString(undefined, {maximumFractionDigits: 0});
+
+                tr.innerHTML = `
+                    <td style="padding: 10px; color: var(--accent-glow)">${obj.name}</td>
+                    <td style="padding: 10px;">${diameter}</td>
+                    <td style="padding: 10px;">${velocity} KM/H</td>
+                    <td style="padding: 10px; color: ${isHazard ? 'var(--danger)' : 'var(--log-color)'}">${isHazard ? 'CRITICAL' : 'SAFE'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
         }
 
         async function startAssessment() {
             const query = document.getElementById('query-input').value;
             logStream.innerHTML = '';
+            setSystemStatus('thinking');
+            threatBoard.innerHTML = '<div style="text-align:center; padding-top: 50px; opacity: 0.5;">REQUESTING NASA TELEMETRY...</div>';
             appendLog(`Initializing Agentic Loop for: "${query}"`, 'action');
             
             const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(query)}`);
@@ -301,42 +380,63 @@
             eventSource.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 
-                // Parse ADK specific event types
-                if (data.content.includes("CALL TOOL: python_interpreter")) {
-                    appendLog("Executing Python Analysis...", "action");
-                } else if (data.content.includes("near_earth_objects")) {
-                    appendLog("NASA Telemetry Received.", "observation");
-                } else if (data.content.includes("MISSION COMPLETE")) {
-                    appendLog("ASSESSMENT COMPLETE.", "final");
-                    eventSource.close();
-                    fetchFinalResults();
-                } else {
-                    appendLog(data.content.substring(0, 200) + "...", "thought");
+                if (data.type === 'telemetry') {
+                    renderTelemetry(data.content);
+                } else if (data.type === 'log') {
+                    loopCount++;
+                    cpuText.textContent = loopCount;
+                    
+                    if (data.content.includes("MISSION COMPLETE") || data.content.includes("ORDER EXECUTED")) {
+                        appendLog(data.content, "final");
+                        setSystemStatus('idle');
+                        eventSource.close();
+                    } else if (data.content.startsWith("🚀") || data.content.startsWith("📡")) {
+                        appendLog(data.content, "action");
+                    } else {
+                        appendLog(data.content, "thought");
+                    }
                 }
             };
 
             eventSource.onerror = () => {
-                appendLog("Stream error. Check backend terminal.", "danger");
+                appendLog("Stream terminated or complete.", "final");
+                setSystemStatus('idle');
                 eventSource.close();
             };
         }
 
-        async function fetchFinalResults() {
-             // In a real app, we'd fetch a generated state/markdown. 
-             // For this demo, we'll simulate the table render.
-             threatBoard.innerHTML = `
-                <table>
-                    <thead>
-                        <tr><th>NAME</th><th>DIAMETER (M)</th><th>ENERGY (J)</th><th>THREAT LEVEL</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>(2023 JD2)</td><td>110m</td><td>4.2e15</td><td style="color:var(--danger)">CRITICAL</td></tr>
-                        <tr><td>Apophis (Sim)</td><td>340m</td><td>1.8e18</td><td style="color:var(--danger)">EXTREME</td></tr>
-                        <tr><td>2024 BX1</td><td>4m</td><td>1.2e10</td><td style="color:var(--log-color)">LOW</td></tr>
-                    </tbody>
-                </table>
-             `;
+        async function sendTacticalOrder() {
+            const input = document.getElementById('chat-input');
+            const message = input.value;
+            if (!message) return;
+            
+            input.value = '';
+            setSystemStatus('thinking');
+            appendLog(`Issuing Order: "${message}"`, 'action');
+            
+            const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(message)}`);
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === 'telemetry') {
+                    renderTelemetry(data.content);
+                } else if (data.type === 'log') {
+                    loopCount++;
+                    cpuText.textContent = loopCount;
+                    if (data.content.includes("MISSION COMPLETE") || data.content.includes("ORDER EXECUTED")) {
+                        appendLog(data.content, "final");
+                        setSystemStatus('idle');
+                        eventSource.close();
+                    } else {
+                        appendLog(data.content, "thought");
+                    }
+                }
+            };
+            eventSource.onerror = () => {
+                setSystemStatus('idle');
+                eventSource.close();
+            };
         }
     </script>
 </body>
 </html>
+
