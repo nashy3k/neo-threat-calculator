@@ -89,14 +89,27 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                 # Case 3: event has a name (some events are the agent objects themselves)
                 elif hasattr(event, "name") and not hasattr(event, "content"):
                     agent_name = event.name
+                
+                # Case 4: Nuclear Option - check str representation for specialist names
+                if not agent_name:
+                    ev_str = str(event)
+                    if "BriefingSpecialist" in ev_str: agent_name = "BriefingSpecialist"
+                    elif "AnalysisSpecialist" in ev_str: agent_name = "AnalysisSpecialist"
+                    elif "DataSpecialist" in ev_str: agent_name = "DataSpecialist"
+                    elif "NEOCommander" in ev_str: agent_name = "NEOCommander"
 
                 if agent_name:
                     if agent_name == "BriefingSpecialist":
                         current_role = "briefing"
+                        print("DEBUG: Active Agent -> BriefingSpecialist")
                     elif agent_name in ["DataSpecialist", "AnalysisSpecialist"]:
                         current_role = "research"
-                    else:
+                        print(f"DEBUG: Active Agent -> {agent_name}")
+                    elif agent_name == "NEOCommander":
+                        # Only reset to system if it's explicitly the orchestrator
+                        # This prevents flickering roles during transitions
                         current_role = "system"
+                        print("DEBUG: Active Agent -> NEOCommander")
 
                 # Extract content from parts
                 if hasattr(event, "content") and event.content and hasattr(event.content, "parts"):
