@@ -312,10 +312,26 @@
             }
         }
 
-        function appendLog(text, type = 'log') {
+        function appendLog(text, type = 'log', role = 'system') {
             const div = document.createElement('div');
             div.className = `log-entry ${type}`;
-            div.textContent = `> [${new Date().toLocaleTimeString()}] ${text}`;
+            const timestamp = new Date().toLocaleTimeString([], { hour12: true, minute: '2-digit', second: '2-digit' });
+            
+            let color = '#00f2ff'; // Default Cyan
+            let prefix = '>';
+            
+            if (role === 'briefing') {
+                color = '#ff9100'; // Orange (SITREP)
+                prefix = '🚨';
+            } else if (role === 'research') {
+                color = '#f1c40f'; // Yellow (Math/Data)
+                prefix = '🔬';
+            } else if (type === 'action') {
+                prefix = '📡';
+                color = '#fff'; // White for user actions
+            }
+
+            div.innerHTML = `<span style="opacity: 0.5">[${timestamp}]</span> <span style="color: ${color}">${prefix} ${text}</span>`;
             logStream.appendChild(div);
             
             // Robust auto-scroll
@@ -402,13 +418,11 @@
                     cpuText.textContent = loopCount;
                     
                     if (data.content.includes("MISSION COMPLETE") || data.content.includes("ORDER EXECUTED")) {
-                        appendLog(data.content, "final");
+                        appendLog(data.content, "final", data.role);
                         setSystemStatus('idle');
                         eventSource.close();
-                    } else if (data.content.startsWith("🚀") || data.content.startsWith("📡")) {
-                        appendLog(data.content, "action");
                     } else {
-                        appendLog(data.content, "thought");
+                        appendLog(data.content, "thought", data.role);
                     }
                 }
             };
@@ -438,11 +452,11 @@
                     loopCount++;
                     cpuText.textContent = loopCount;
                     if (data.content.includes("MISSION COMPLETE") || data.content.includes("ORDER EXECUTED")) {
-                        appendLog(data.content, "final");
+                        appendLog(data.content, "final", data.role);
                         setSystemStatus('idle');
                         eventSource.close();
                     } else {
-                        appendLog(data.content, "thought");
+                        appendLog(data.content, "thought", data.role);
                     }
                 }
             };

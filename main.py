@@ -73,12 +73,14 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
             ):
                 content_str = ""
                 event_type = "log"
-                agent_role = "specialist" # Default role
+                agent_role = "system" # Default role
                 
-                # Identify if this is the BriefingSpecialist for color coding
+                # Identify agent role for color coding
                 if hasattr(event, "agent") and event.agent:
                     if event.agent.name == "BriefingSpecialist":
                         agent_role = "briefing"
+                    elif event.agent.name in ["DataSpecialist", "AnalysisSpecialist"]:
+                        agent_role = "research"
                 
                 # Extract content from parts
                 if hasattr(event, "content") and event.content and hasattr(event.content, "parts"):
