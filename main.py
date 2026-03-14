@@ -52,9 +52,17 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
 
     async def event_generator():
         from google.genai import types
+        import datetime
         
-        # Immediate Heartbeat
-        yield f"data: {json.dumps({'type': 'log', 'content': '📡 NEURAL LINK ESTABLISHED. INITIALIZING ENGINE...'})}\n\n"
+        # 1. Pump Priming: Force Cloud Run/Proxies to flush the stream immediately
+        # We send a large invisible comment block (2KB)
+        yield f": {' ' * 2048}\n\n"
+        
+        def get_ts():
+            return datetime.datetime.now().strftime("%H:%M:%S")
+
+        # Immediate Heartbeat with Server Timestamp
+        yield f"data: {json.dumps({'type': 'log', 'content': '📡 NEURAL LINK ESTABLISHED. INITIALIZING ENGINE...', 'server_time': get_ts()})}\n\n"
 
         runner = Runner(
             app_name="NEOThreatTracker",
@@ -106,8 +114,6 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                         current_role = "research"
                         print(f"DEBUG: Active Agent -> {agent_name}")
                     elif agent_name == "NEOCommander":
-                        # Only reset to system if it's explicitly the orchestrator
-                        # This prevents flickering roles during transitions
                         current_role = "system"
                         print("DEBUG: Active Agent -> NEOCommander")
 
@@ -120,7 +126,6 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                             
                         # 2. Function Call
                         elif hasattr(p, "function_call") and p.function_call:
-                            # Color coding for tools: stays in researcher role if researcher is calling
                             content_str += f"\n🚀 EXECUTING TOOL: {p.function_call.name}"
                             
                         # 3. Function Response (Telemetry)
@@ -141,11 +146,13 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                                 content_str += f"\n✅ Tool {resp.name} completed."
                 
                 if not content_str.strip():
-                    # Pass the current role to heartbeats so they don't look like 'system' errors
-                    yield f"data: {json.dumps({'type': 'log', 'content': '...', 'role': current_role})}\n\n"
+                    # Pass the current role to heartbeats
+                    # We only send these if the runner is actually doing something (avoid flooding)
+                    yield f"data: {json.dumps({'type': 'log', 'content': '...', 'role': current_role, 'server_time': get_ts()})}\n\n"
                     continue
                     
-                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip(), 'role': current_role})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip(), 'role': current_role, 'server_time': get_ts()})}\n\n"
+                await asyncio.sleep(0.01) # Ultra-fast flush
                 await asyncio.sleep(0.01) # Ultra-fast flush
                 
         except Exception as e:
