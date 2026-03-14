@@ -242,7 +242,7 @@
             <h1>NEO Threat Commander</h1>
             <div class="status-badge">
                 <div class="pulse"></div>
-                SYSTEM: ONLINE | <span id="system-status-label">LOOPS</span>: <span id="cpu-usage">0</span>
+                <span id="system-status">SYSTEM: ONLINE</span> | LOOPS: <span id="cpu-usage">0</span>
             </div>
         </header>
 
@@ -285,7 +285,7 @@
         const logStream = document.getElementById('log-stream');
         const threatBoard = document.getElementById('threat-board');
         const statusBadge = document.querySelector('.status-badge');
-        const statusText = statusBadge.querySelector('span');
+        const statusText = document.getElementById('system-status');
         const cpuText = document.getElementById('cpu-usage');
         
         let loopCount = 0;
