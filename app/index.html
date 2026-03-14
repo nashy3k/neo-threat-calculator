@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEO Threat Board | Control Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Share+Tech+Mono&family=Inter:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #05070a;
+            --panel-bg: rgba(15, 20, 30, 0.8);
+            --border-color: #1a2a40;
+            --accent-glow: #00f2ff;
+            --text-color: #e0e6ed;
+            --log-color: #00ff9d;
+            --danger: #ff3e3e;
+            --warning: #ffb800;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Neural Grid Background */
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(var(--border-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.1;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr 400px;
+            grid-template-rows: 80px 1fr;
+            height: 100vh;
+            gap: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+        }
+
+        /* Header */
+        header {
+            grid-column: 1 / span 3;
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 25px;
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(0, 242, 255, 0.05);
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-size: 1.5rem;
+            margin: 0;
+            background: linear-gradient(90deg, #fff, var(--accent-glow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.9rem;
+            color: var(--log-color);
+        }
+
+        .pulse {
+            width: 10px;
+            height: 10px;
+            background: var(--log-color);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 255, 157, 0.7); }
+            70% { transform: scale(1.1); opacity: 1; box-shadow: 0 0 0 10px rgba(0, 255, 157, 0); }
+            100% { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 0 0 rgba(0, 255, 157, 0); }
+        }
+
+        /* Left Panel - Control */
+        .control-panel {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            margin-bottom: 8px;
+            opacity: 0.7;
+        }
+
+        input, button {
+            width: 100%;
+            background: #000;
+            border: 1px solid var(--border-color);
+            color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        button {
+            background: linear-gradient(45deg, #005f6b, #00b8cc);
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            border: none;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            filter: brightness(1.2);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* Center Panel - Main Viewports */
+        .main-viewport {
+            display: grid;
+            grid-template-rows: 1fr 200px;
+            gap: 15px;
+        }
+
+        .threat-board {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .threat-board table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        .threat-board th {
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.7rem;
+            opacity: 0.7;
+        }
+
+        .threat-board td {
+            padding: 12px;
+            border-bottom: 1px solid rgba(26, 42, 64, 0.3);
+        }
+
+        /* Right Panel - LOGS (The Hero) */
+        .log-panel {
+            background: #0a0e14;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .log-header {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .log-stream {
+            flex-grow: 1;
+            font-family: 'Share Tech Mono', monospace;
+            background: #000;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-y: auto;
+            color: var(--log-color);
+            font-size: 0.85rem;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        .log-entry { margin-bottom: 10px; opacity: 0; animation: fadeIn 0.5s forwards; }
+        .log-entry.thought { color: #8892b0; border-left: 2px solid #334155; padding-left: 10px; }
+        .log-entry.action { color: var(--accent-glow); }
+        .log-entry.observation { color: var(--warning); padding: 5px; background: rgba(255, 184, 0, 0.05); }
+        .log-entry.final { color: #fff; font-size: 1rem; border: 1px dashed var(--log-color); padding: 10px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-glow); }
+    </style>
+</head>
+<body>
+    <div class="grid-overlay"></div>
+    <div class="dashboard">
+        <header>
+            <h1>NEO Threat Commander</h1>
+            <div class="status-badge">
+                <div class="pulse"></div>
+                SYSTEM: ONLINE | BUFFER: <span id="cpu-usage">660MB</span>
+            </div>
+        </header>
+
+        <aside class="control-panel">
+            <div class="input-group">
+                <label>ASSESSMENT TARGET</label>
+                <input type="text" id="query-input" value="Find high risk asteroids in the next 7 days">
+            </div>
+            <button id="launch-btn" onclick="startAssessment()">INITIALIZE SEQUENCE</button>
+            <div style="margin-top: auto; font-size: 0.65rem; opacity: 0.5;">
+                PROJECT: ADK-BETA-1<br>
+                MODEL: GEMINI-2.5-FLASH<br>
+                AUTH: ADC VERIFIED
+            </div>
+        </aside>
+
+        <main class="main-viewport">
+            <div class="threat-board" id="threat-board">
+                <div style="text-align:center; padding-top: 50px; opacity: 0.5;">
+                    AWAITING TELEMETRY DATA...
+                </div>
+            </div>
+            <div class="data-vis" style="background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px;">
+                <!-- Placeholder for future canvas visualization -->
+                <canvas id="radar-vis"></canvas>
+            </div>
+        </main>
+
+        <section class="log-panel">
+            <div class="log-header">
+                🚀 REASONING ENGINE LOGS
+            </div>
+            <div class="log-stream" id="log-stream">
+                [SYSTEM READY]
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const logStream = document.getElementById('log-stream');
+        const threatBoard = document.getElementById('threat-board');
+
+        function appendLog(text, type = 'log') {
+            const div = document.createElement('div');
+            div.className = `log-entry ${type}`;
+            div.textContent = `> [${new Date().toLocaleTimeString()}] ${text}`;
+            logStream.appendChild(div);
+            logStream.scrollTop = logStream.scrollHeight;
+        }
+
+        async function startAssessment() {
+            const query = document.getElementById('query-input').value;
+            logStream.innerHTML = '';
+            appendLog(`Initializing Agentic Loop for: "${query}"`, 'action');
+            
+            const eventSource = new EventSource(`/stream-assessment?user_query=${encodeURIComponent(query)}`);
+            
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                // Parse ADK specific event types
+                if (data.content.includes("CALL TOOL: python_interpreter")) {
+                    appendLog("Executing Python Analysis...", "action");
+                } else if (data.content.includes("near_earth_objects")) {
+                    appendLog("NASA Telemetry Received.", "observation");
+                } else if (data.content.includes("MISSION COMPLETE")) {
+                    appendLog("ASSESSMENT COMPLETE.", "final");
+                    eventSource.close();
+                    fetchFinalResults();
+                } else {
+                    appendLog(data.content.substring(0, 200) + "...", "thought");
+                }
+            };
+
+            eventSource.onerror = () => {
+                appendLog("Stream error. Check backend terminal.", "danger");
+                eventSource.close();
+            };
+        }
+
+        async function fetchFinalResults() {
+             // In a real app, we'd fetch a generated state/markdown. 
+             // For this demo, we'll simulate the table render.
+             threatBoard.innerHTML = `
+                <table>
+                    <thead>
+                        <tr><th>NAME</th><th>DIAMETER (M)</th><th>ENERGY (J)</th><th>THREAT LEVEL</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>(2023 JD2)</td><td>110m</td><td>4.2e15</td><td style="color:var(--danger)">CRITICAL</td></tr>
+                        <tr><td>Apophis (Sim)</td><td>340m</td><td>1.8e18</td><td style="color:var(--danger)">EXTREME</td></tr>
+                        <tr><td>2024 BX1</td><td>4m</td><td>1.2e10</td><td style="color:var(--log-color)">LOW</td></tr>
+                    </tbody>
+                </table>
+             `;
+        }
+    </script>
+</body>
+</html>

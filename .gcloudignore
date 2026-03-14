@@ -1,0 +1,12 @@
+.git
+.gitignore
+.gcloudignore
+node_modules
+.gemini
+brain
+*.png
+*.webp
+__pycache__
+*.pyc
+venv
+.env

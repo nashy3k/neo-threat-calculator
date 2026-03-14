@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+httpx
+pydantic
+typing-extensions
+# Ensure the specific ADK version is managed by the container environment if possible, 
+# but for now we'll assume standard install works.
+google-adk
+google-genai
+google-cloud-aiplatform
