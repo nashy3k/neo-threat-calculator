@@ -73,6 +73,12 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
             ):
                 content_str = ""
                 event_type = "log"
+                agent_role = "specialist" # Default role
+                
+                # Identify if this is the BriefingSpecialist for color coding
+                if hasattr(event, "agent") and event.agent:
+                    if event.agent.name == "BriefingSpecialist":
+                        agent_role = "briefing"
                 
                 # Extract content from parts
                 if hasattr(event, "content") and event.content and hasattr(event.content, "parts"):
@@ -103,7 +109,7 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
                     yield f"data: {json.dumps({'type': 'log', 'content': '...'})}\n\n"
                     continue
                     
-                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip()})}\n\n"
+                yield f"data: {json.dumps({'type': 'log', 'content': content_str.strip(), 'role': agent_role})}\n\n"
                 await asyncio.sleep(0.01) # Ultra-fast flush
                 
         except Exception as e:
