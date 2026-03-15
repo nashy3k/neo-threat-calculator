@@ -76,6 +76,13 @@ graph TD
 - **Format**: YouTube Unlisted with Voice-Over.
 - **Focus**: Observe the "Agentic Recovery" as specialists self-correct during the logic loop.
 
+## 📘 Prototype Documentation
+For a deep dive into the engineering process, research, and tactical manuals, see the official mission documentation:
+- **[Mission Log (Walkthrough)](docs/MISSION_LOG.md)** - Step-by-step implementation and verification history.
+- **[Tactical Order Manual](docs/TACTICAL_ORDERS.md)** - A guide to the available agentic commands.
+- **[NotebookLM Source Kit](docs/NOTEBOOKLM_KIT.md)** - The data used to generate AI assets.
+- **[Research & Synthesis](docs/RESEARCH_SYNTHESIS.md)** - Initial project planning and ADK digestion.
+
 ## 🛠️ Local Development
 1. Clone the repo.
 2. Install dependencies: `pip install -r requirements.txt`.
