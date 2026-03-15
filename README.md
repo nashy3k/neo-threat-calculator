@@ -8,23 +8,23 @@ NEO Threat Calculator is an autonomous planetary defense dashboard powered by Go
 ```mermaid
 graph TD
     %% Define Subgraphs for Structural Clarity
-    subgraph UI [Premium Interface]
-        Dashboard[Control Room Dashboard]
+    subgraph UI ["Premium Interface"]
+        Dashboard["Control Room Dashboard"]
     end
 
-    subgraph Orchestrator [Agentic Orchestration]
-        Commander[NEOCommander<br><i>(ADK LoopAgent)</i>]
+    subgraph Orchestrator ["Agentic Orchestration"]
+        Commander["NEOCommander<br/>(ADK LoopAgent)"]
     end
 
-    subgraph Specialists [Specialized AI Agents]
-        DataAgent[DataSpecialist]
-        AnalysisAgent[AnalysisSpecialist]
-        BriefingAgent[BriefingSpecialist]
+    subgraph Specialists ["Specialized AI Agents"]
+        DataAgent["DataSpecialist"]
+        AnalysisAgent["AnalysisSpecialist"]
+        BriefingAgent["BriefingSpecialist"]
     end
 
-    subgraph Tools [External Tools & Data]
-        NASA_API[(NASA NeoWs API)]
-        Python_Tool[[Python Execution Sandbox]]
+    subgraph Tools ["External Tools & Data"]
+        NASA_API["NASA NeoWs API"]
+        Python_Tool["Python Execution Sandbox"]
     end
 
     %% Process Flow
