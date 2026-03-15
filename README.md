@@ -1,8 +1,8 @@
 # NEO Threat Calculator 🛰️
 
-> **Planetary Defense via Autonomous Agentic Loops.**
+> **Autonomous Planetary Defense: Scout. Simulate. Strategize.**
 
-NEO Threat Calculator is an autonomous planetary defense dashboard powered by Google's Agent Development Kit (ADK). It orchestrates a multi-specialist agent loop to fetch live NASA telemetry, execute precise kinetic energy simulations via Python, and deliver strategic SITREPs in a premium "Control Room" interface. Built for speed, precision, and mission-critical reliability.
+**NEO Threat Calculator** turns raw space telemetry into actionable planetary defense. Powered by the Google ADK and Gemini 2.5 Flash, it orchestrates an autonomous "Agent Orchestra" to identify near-earth hazards, run precise kinetic energy simulations in Python, and deliver technical SITREPs—all while you watch the reasoning stream in real-time. This isn't a chatbot; it's an agentic command center.
 
 ## 📊 Functional Architecture
 ```mermaid
