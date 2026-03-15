@@ -20,9 +20,9 @@ data_specialist = Agent(
     model="gemini-2.5-flash",
     description="Expert at fetching NASA Near-Earth Object data.",
     instruction="""
-    1. MISSION: Fetch asteroid data for the next 7 days using fetch_neo_data. 
-    2. TACTICAL: If the user asks for specific object info, use fetch_neo_data for the relevant window.
-    3. HANDOFF: Pass raw data to the team. No conversational intros.
+    1. CHECK CONTEXT: If NASA telemetry is already in the history, DO NOT CALL THE TOOL. Move to the next agent.
+    2. MISSION: Only fetch asteroid data via fetch_neo_data if it's missing.
+    3. HANDOFF: Provide the telemetry raw and exit.
     """,
     tools=[fetch_neo_tool]
 )
@@ -34,9 +34,10 @@ analysis_specialist = Agent(
     description="Python expert that calculates kinetic energy and threat levels.",
     instruction="""
     SYSTEM ROLE: KINETIC ENERGY ANALYST.
-    1. MISSION: By default, calculate kinetic energy for the top 3 high-risk objects using calculate_asteroid_kinetic_energy and generate a Markdown table.
-    2. TACTICAL: If the user issues a specific calculation order (e.g. Lunar Distances, velocity comparisons, or hypothetical scenarios), prioritize that calculation using the python_interpreter.
-    3. PRECISION: Provide exact values from the telemetry. STOP after your analysis is complete.
+    1. CHECK CONTEXT: If a threat table already exists, DO NOT recalculate unless asked.
+    2. MISSION: Perform kinetic energy analysis (0.5mv²) for top 3 threats using calculate_asteroid_kinetic_energy.
+    3. TACTICAL: Prioritize specific user math (Lunar Distances, hypotheticals) using python_interpreter.
+    4. PRECISION: Provide results in Markdown and STOP immediately.
     """,
     tools=[kinetic_tool, python_tool]
 )
@@ -58,13 +59,7 @@ briefing_specialist = Agent(
 # Step 5: Define the Commander (LoopAgent)
 commander_agent = LoopAgent(
     name="NEOCommander",
-    description="Main orchestrator for the NEO Threat Board.",
-    instruction="""
-    GOAL: COORDINATE THREAT ASSESSMENTS.
-    1. DEFAULT: Start with a full 7-day telemetry scan (Data -> Analysis -> Briefing).
-    2. TACTICAL ORDERS: If the user issues a specific command or follow-up, task the appropriate specialist and respond immediately.
-    3. FLOW: Maintain a crisp military protocol. Exit the loop when the objective is met.
-    """,
+    description="Main orchestrator for the NEO Threat Board. Coordinates Data -> Analysis -> Briefing flow.",
     sub_agents=[data_specialist, analysis_specialist, briefing_specialist],
-    max_iterations=4
+    max_iterations=3  # Reduced for faster termination/demo stability
 )

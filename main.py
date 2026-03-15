@@ -55,14 +55,15 @@ async def stream_assessment(user_query: str = "Identify major NEO threats", sess
         import datetime
         
         # 1. Pump Priming: Force Cloud Run/Proxies to flush the stream immediately
-        # We send a large invisible comment block (2KB)
-        yield f": {' ' * 2048}\n\n"
+        # We send a larger invisible comment block (4KB) to overcome common proxy buffers
+        yield f": {' ' * 4096}\n\n"
         
         def get_ts():
             return datetime.datetime.now().strftime("%H:%M:%S")
 
         # Immediate Heartbeat with Server Timestamp
         yield f"data: {json.dumps({'type': 'log', 'content': '📡 NEURAL LINK ESTABLISHED. INITIALIZING ENGINE...', 'server_time': get_ts()})}\n\n"
+        await asyncio.sleep(0.01) # Force flush
 
         runner = Runner(
             app_name="NEOThreatTracker",

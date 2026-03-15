@@ -20,9 +20,25 @@ async def fetch_neo_data_func(days_count: int = 7) -> dict:
             response.raise_for_status()
             data = response.json()
             
-            # Simplify the data for the LLM context to avoid token bloat
-            # Focus on names and raw measurement data for Python analysis
-            return data
+            # Summarize the data to reduce payload size and context bloat
+            # Extract only essential fields for analysis
+            simplified_data = {"near_earth_objects": {}}
+            for date, objects in data.get("near_earth_objects", {}).items():
+                simplified_data["near_earth_objects"][date] = []
+                for obj in objects:
+                    simplified_data["near_earth_objects"][date].append({
+                        "name": obj.get("name"),
+                        "id": obj.get("id"),
+                        "estimated_diameter": obj.get("estimated_diameter"),
+                        "is_potentially_hazardous_asteroid": obj.get("is_potentially_hazardous_asteroid"),
+                        "close_approach_data": [{
+                            "relative_velocity": obj["close_approach_data"][0]["relative_velocity"],
+                            "miss_distance": obj["close_approach_data"][0]["miss_distance"],
+                            "close_approach_date": obj["close_approach_data"][0]["close_approach_date"]
+                        }] if obj.get("close_approach_data") else []
+                    })
+            
+            return simplified_data
         except Exception as e:
             return {"error": f"Failed to fetch NASA data: {str(e)}"}
 
