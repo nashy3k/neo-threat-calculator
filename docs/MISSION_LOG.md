@@ -19,9 +19,9 @@ We have successfully implemented a triple-agent pipeline for maximum impact duri
 The application has been finalized with robust performance optimizations, reducing completion time from over 5 minutes to **under 30 seconds**.
 
 ````carousel
-![Mission Performance Verification](C:/Users/admin/.gemini/antigravity/brain/2f26b2de-0037-4132-b583-a8df07e8d148/neo_mission_complete_1773544422752.png)
+![Mission Performance Verification](media/mission_complete.png)
 <!-- slide -->
-![Snappy Real-time Streaming](C:/Users/admin/.gemini/antigravity/brain/2f26b2de-0037-4132-b583-a8df07e8d148/final_performance_verification_1773544354236.webp)
+![Snappy Real-time Streaming](media/performance_verification.webp)
 ````
 
 **Key Results:**

@@ -7,15 +7,28 @@ import json
 import asyncio
 
 from fastapi.staticfiles import StaticFiles
+from starlette.middleware.sessions import SessionMiddleware
+from config.secrets import get_secret
+from config.auth import oauth, verify_auth
+from fastapi import Depends
 
 app = FastAPI(title="NEO Threat Tracker")
 
 # Mount frontend
 app.mount("/static", StaticFiles(directory="app"), name="static")
 
+# Tier 1 Security: Session Management
+app.add_middleware(
+    SessionMiddleware, 
+    secret_key=get_secret("SESSION_SECRET_KEY"),
+    max_age=3600  # 1 hour session
+)
+
+# Tier 2 Security: Restrictive CORS
+# Only allow Localhost for development and *.a.run.app for production
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origin_regex=r"https?://(localhost|.*\.a\.run\.app)(:\d+)?",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -25,6 +38,32 @@ app.add_middleware(
 async def root():
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/static/index.html")
+
+@app.get("/login")
+async def login(request: Request):
+    # Ensure the redirect URI uses https if on Cloud Run
+    redirect_uri = request.url_for('auth')
+    if "a.run.app" in str(redirect_uri):
+        redirect_uri = str(redirect_uri).replace("http://", "https://")
+    return await oauth.google.authorize_redirect(request, redirect_uri)
+
+@app.get("/auth")
+async def auth(request: Request):
+    token = await oauth.google.authorize_access_token(request)
+    user = token.get('userinfo')
+    if user:
+        request.session['user'] = dict(user)
+    return RedirectResponse(url='/')
+
+@app.get("/logout")
+async def logout(request: Request):
+    request.session.pop('user', None)
+    return RedirectResponse(url='/')
+
+@app.get("/user")
+async def get_user(request: Request):
+    user = request.session.get('user')
+    return {"authenticated": user is not None, "user": user}
 
 @app.get("/health")
 async def health():
@@ -39,7 +78,11 @@ session_service = InMemorySessionService()
 artifact_service = InMemoryArtifactService()
 
 @app.get("/stream-assessment")
-async def stream_assessment(user_query: str = "Identify major NEO threats", session_id: str = "neo_live_stream"):
+async def stream_assessment(
+    user_query: str = "Identify major NEO threats", 
+    session_id: str = "neo_live_stream",
+    user: dict = Depends(verify_auth) # PROTECTED
+):
     """
     Streams the LoopAgent's reasoning steps and tool outputs as SSE.
     """

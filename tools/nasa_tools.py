@@ -2,13 +2,14 @@ from google.adk.tools import FunctionTool
 import httpx
 import os
 from datetime import datetime, timedelta
+from config.secrets import get_secret
 
 async def fetch_neo_data_func(days_count: int = 7) -> dict:
     """
     Fetches Near-Earth Object (asteroid) data from NASA's NeoWs API.
     Returns JSON containing asteroid names, diameters, and proximity data.
     """
-    api_key = os.getenv("NASA_API_KEY", "DEMO_KEY")
+    api_key = get_secret("NASA_API_KEY")
     start_date = datetime.now().strftime("%Y-%m-%d")
     end_date = (datetime.now() + timedelta(days=days_count)).strftime("%Y-%m-%d")
     

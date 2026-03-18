@@ -8,3 +8,6 @@ typing-extensions
 google-adk
 google-genai
 google-cloud-aiplatform
+google-cloud-secret-manager
+authlib
+itsdangerous

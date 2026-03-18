@@ -3,11 +3,21 @@
     "**/node_modules": true,
     "**/.next": true,
     "**/dist": true,
-    "**/media": true
+    "**/media": true,
+    "**/*.webp": true,
+    "**/*.mov": true,
+    "**/*.mp4": true,
+    "**/*.png": true,
+    "**/*.jpg": true
   },
   "files.watcherExclude": {
     "**/node_modules/**": true,
     "**/.next/**": true,
-    "**/media/**": true
+    "**/media/**": true,
+    "**/*.webp": true,
+    "**/*.mov": true,
+    "**/*.mp4": true,
+    "**/*.png": true,
+    "**/*.jpg": true
   }
 }
