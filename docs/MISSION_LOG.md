@@ -18,11 +18,8 @@ We have successfully implemented a triple-agent pipeline for maximum impact duri
 
 The application has been finalized with robust performance optimizations, reducing completion time from over 5 minutes to **under 30 seconds**.
 
-````carousel
 ![Mission Performance Verification](media/mission_complete.png)
-<!-- slide -->
 ![Snappy Real-time Streaming](media/performance_verification.webp)
-````
 
 **Key Results:**
 - **Robust Role Parsing:** Specialist agents are now correctly identified via a foolproof string-matching scavenger hunt in `main.py`, ensuring Yellow (🔬) and Orange (🚨) logs.
