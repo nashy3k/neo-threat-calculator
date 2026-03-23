@@ -6,7 +6,7 @@ from tools.python_tool import python_interpreter_func
 
 # System Constants
 PROJECT_ID = "adk-beta-1"
-MODEL_ID = "gemini-2.5-flash"
+MODEL_ID = "gemini-2.5-flash-lite"
 LOCATION = "us-central1"
 
 # Force Vertex AI for project context
