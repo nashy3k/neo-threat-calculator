@@ -37,7 +37,13 @@ async def verify_auth(request: Request):
         raise HTTPException(status_code=401, detail="Not authenticated")
     
     email = user.get("email")
-    if email not in get_allowed_users():
+    allowed_list = get_allowed_users()
+    
+    # If '*' is in the list, allow any authenticated Google user
+    if "*" in allowed_list:
+        return user
+        
+    if email not in allowed_list:
         raise HTTPException(status_code=403, detail="Forbidden: You are not in the allow-list.")
     
     return user
