@@ -71,3 +71,34 @@ async def calculate_asteroid_kinetic_energy(diameter_km: float, velocity_km_s: f
         }
     except Exception as e:
         return {"error": f"Calculation failed: {str(e)}"}
+async def get_historical_impact_data() -> dict:
+    """
+    Returns a reference dataset of famous historical asteroid impact events
+    for comparison with current threats.
+    """
+    return {
+        "Chelyabinsk (2013)": {
+            "diameter_m": 20,
+            "velocity_km_s": 19,
+            "impact_energy_mt": 0.5,
+            "description": "Exploded over Russia, causing wide-spread minor injuries and glass damage."
+        },
+        "Tunguska (1908)": {
+            "diameter_m": 50,
+            "velocity_km_s": 15,
+            "impact_energy_mt": 15,
+            "description": "Flattened 2000 sq km of forest in Siberia. No crater (airburst)."
+        },
+        "Chicxulub (KT Extinction)": {
+            "diameter_km": 10,
+            "velocity_km_s": 20,
+            "impact_energy_mt": 100000000,
+            "description": "Ended the era of dinosaurs. Global climate catastrophe."
+        },
+        "Barringer Crater (Meteor Crater)": {
+            "diameter_m": 50,
+            "velocity_km_s": 12.8,
+            "impact_energy_mt": 10,
+            "description": "Created the iconic 1.2km wide crater in Arizona ~50,000 years ago."
+        }
+    }

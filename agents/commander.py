@@ -1,7 +1,7 @@
 import os
 from google.adk.agents import Agent, LoopAgent
 from google.adk.tools import FunctionTool
-from tools.nasa_tools import fetch_neo_data_func, calculate_asteroid_kinetic_energy
+from tools.nasa_tools import fetch_neo_data_func, calculate_asteroid_kinetic_energy, get_historical_impact_data
 from tools.python_tool import python_interpreter_func
 
 # Force Vertex AI for adk-beta-1 project
@@ -13,6 +13,7 @@ os.environ["GOOGLE_CLOUD_LOCATION"] = "us-central1"
 fetch_neo_tool = FunctionTool(fetch_neo_data_func)
 python_tool = FunctionTool(python_interpreter_func)
 kinetic_tool = FunctionTool(calculate_asteroid_kinetic_energy)
+historical_tool = FunctionTool(get_historical_impact_data)
 
 # Step 2: Define the Data Specialist
 data_specialist = Agent(
@@ -36,10 +37,11 @@ analysis_specialist = Agent(
     SYSTEM ROLE: KINETIC ENERGY ANALYST.
     1. CHECK CONTEXT: If a threat table already exists, DO NOT recalculate unless asked.
     2. MISSION: Perform kinetic energy analysis (0.5mv²) for top 3 threats using calculate_asteroid_kinetic_energy.
-    3. TACTICAL: Prioritize specific user math (Lunar Distances, hypotheticals) using python_interpreter.
-    4. PRECISION: Provide results in Markdown and STOP immediately.
+    3. HISTORICAL COMPARISON: If the user asks for comparisons or context (e.g. "Chelyabinsk", "Tunguska"), call get_historical_impact_data to fetch baseline benchmarks.
+    4. TACTICAL: Prioritize specific user math (Lunar Distances, hypotheticals) using python_interpreter.
+    5. PRECISION: Provide results in Markdown and STOP immediately.
     """,
-    tools=[kinetic_tool, python_tool]
+    tools=[kinetic_tool, python_tool, historical_tool]
 )
 
 # Step 4: Define the Briefing Specialist
