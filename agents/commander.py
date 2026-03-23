@@ -4,10 +4,15 @@ from google.adk.tools import FunctionTool
 from tools.nasa_tools import fetch_neo_data_func, calculate_asteroid_kinetic_energy, get_historical_impact_data
 from tools.python_tool import python_interpreter_func
 
-# Force Vertex AI for adk-beta-1 project
-os.environ["GOOGLE_CLOUD_PROJECT"] = "adk-beta-1"
+# System Constants
+PROJECT_ID = "adk-beta-1"
+MODEL_ID = "gemini-1.5-flash"
+LOCATION = "us-central1"
+
+# Force Vertex AI for project context
+os.environ["GOOGLE_CLOUD_PROJECT"] = PROJECT_ID
 os.environ["GOOGLE_GENAI_USE_VERTEXAI"] = "True"
-os.environ["GOOGLE_CLOUD_LOCATION"] = "us-central1"
+os.environ["GOOGLE_CLOUD_LOCATION"] = LOCATION
 
 # Step 1: Wrap functions in FunctionTool
 fetch_neo_tool = FunctionTool(fetch_neo_data_func)
@@ -18,7 +23,7 @@ historical_tool = FunctionTool(get_historical_impact_data)
 # Step 2: Define the Data Specialist
 data_specialist = Agent(
     name="DataSpecialist",
-    model="gemini-1.5-flash",
+    model=MODEL_ID,
     description="Expert at fetching NASA Near-Earth Object data.",
     instruction="""
     1. CHECK CONTEXT: If NASA telemetry is already in the history, DO NOT CALL THE TOOL. Move to the next agent.
@@ -31,7 +36,7 @@ data_specialist = Agent(
 # Step 3: Define the Analysis Specialist
 analysis_specialist = Agent(
     name="AnalysisSpecialist",
-    model="gemini-1.5-flash",
+    model=MODEL_ID,
     description="Python expert that calculates kinetic energy and evaluates threat benchmarks.",
     instruction="""
     SYSTEM ROLE: STRATEGIC THREAT ANALYST.
@@ -50,7 +55,7 @@ analysis_specialist = Agent(
 # Step 4: Define the Briefing Specialist
 briefing_specialist = Agent(
     name="BriefingSpecialist",
-    model="gemini-1.5-flash",
+    model=MODEL_ID,
     description="Military communications expert who summarizes threat tables into urgent executive briefings.",
     instruction="""
     SYSTEM ROLE: STRATEGIC COMMUNICATIONS.

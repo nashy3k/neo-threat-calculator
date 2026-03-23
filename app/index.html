@@ -387,8 +387,8 @@
             </div>
             <button id="launch-btn" onclick="startAssessment()">INITIALIZE SEQUENCE</button>
             <div style="margin-top: auto; font-size: 0.65rem; opacity: 0.5;">
-                PROJECT: ADK-BETA-1<br>
-                MODEL: GEMINI-1.5-FLASH<br>
+                PROJECT: <span id="project-display">PENDING...</span><br>
+                MODEL: <span id="model-display">PENDING...</span><br>
                 USER: <span id="user-display">PENDING...</span><br>
                 <a href="/logout" style="color: var(--danger); text-decoration: none; margin-top: 5px; display: inline-block;">[ DISCONNECT ]</a>
             </div>
@@ -431,20 +431,34 @@
         // Security: Check Authentication State
         async function checkAuth() {
             try {
-                const response = await fetch('/user');
-                const data = await response.json();
+                // Fetch Auth Status
+                const authResponse = await fetch('/user');
+                const authData = await authResponse.json();
                 
-                if (data.authenticated) {
+                if (authData.authenticated) {
                     document.getElementById('login-overlay').style.display = 'none';
                     document.getElementById('main-dashboard').style.visibility = 'visible';
-                    document.getElementById('user-display').textContent = data.user.email;
+                    document.getElementById('user-display').textContent = authData.user.email;
+                    
+                    // Fetch System Info only after auth
+                    fetchInfo();
                 } else {
                     document.getElementById('login-overlay').style.display = 'flex';
                     document.getElementById('main-dashboard').style.visibility = 'hidden';
                 }
             } catch (e) {
                 console.error("Auth check failed:", e);
-                // Fallback for local dev without backend running
+            }
+        }
+
+        async function fetchInfo() {
+            try {
+                const response = await fetch('/info');
+                const data = await response.json();
+                document.getElementById('project-display').textContent = data.project.toUpperCase();
+                document.getElementById('model-display').textContent = data.model;
+            } catch (e) {
+                console.error("Failed to fetch system info:", e);
             }
         }
 

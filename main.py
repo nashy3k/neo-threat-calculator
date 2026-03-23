@@ -15,7 +15,7 @@ import datetime
 from config.secrets import get_secret
 from config.auth import oauth, verify_auth, get_allowed_users
 from config.database import log_user_login, log_mission_trace
-from agents.commander import commander_agent
+from agents.commander import commander_agent, PROJECT_ID, MODEL_ID
 
 app = FastAPI(title="NEO Threat Tracker")
 
@@ -72,7 +72,15 @@ async def get_user(request: Request):
 
 @app.get("/health")
 async def health():
-    return {"status": "operational", "project": "adk-beta-1", "agent": "NEOCommander"}
+    return {"status": "operational", "project": PROJECT_ID, "agent": "NEOCommander"}
+
+@app.get("/info")
+async def get_info():
+    return {
+        "project": PROJECT_ID,
+        "model": MODEL_ID.upper(),
+        "version": "1.2.0-ALBETA"
+    }
 
 # Global persistent services for in-memory session memory
 session_service = InMemorySessionService()
