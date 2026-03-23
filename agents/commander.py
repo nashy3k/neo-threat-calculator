@@ -18,7 +18,7 @@ historical_tool = FunctionTool(get_historical_impact_data)
 # Step 2: Define the Data Specialist
 data_specialist = Agent(
     name="DataSpecialist",
-    model="gemini-2.5-flash",
+    model="gemini-1.5-flash",
     description="Expert at fetching NASA Near-Earth Object data.",
     instruction="""
     1. CHECK CONTEXT: If NASA telemetry is already in the history, DO NOT CALL THE TOOL. Move to the next agent.
@@ -31,15 +31,18 @@ data_specialist = Agent(
 # Step 3: Define the Analysis Specialist
 analysis_specialist = Agent(
     name="AnalysisSpecialist",
-    model="gemini-2.5-flash",
-    description="Python expert that calculates kinetic energy and threat levels.",
+    model="gemini-1.5-flash",
+    description="Python expert that calculates kinetic energy and evaluates threat benchmarks.",
     instruction="""
-    SYSTEM ROLE: KINETIC ENERGY ANALYST.
-    1. CHECK CONTEXT: If a threat table already exists, DO NOT recalculate unless asked.
-    2. MISSION: Perform kinetic energy analysis (0.5mv²) for top 3 threats using calculate_asteroid_kinetic_energy.
-    3. HISTORICAL COMPARISON: If the user asks for comparisons or context (e.g. "Chelyabinsk", "Tunguska"), call get_historical_impact_data to fetch baseline benchmarks.
-    4. TACTICAL: Prioritize specific user math (Lunar Distances, hypotheticals) using python_interpreter.
-    5. PRECISION: Provide results in Markdown and STOP immediately.
+    SYSTEM ROLE: STRATEGIC THREAT ANALYST.
+    1. MISSION: Perform kinetic energy analysis (0.5mv²) for top 3 threats using calculate_asteroid_kinetic_energy.
+    2. HISTORICAL EQUIVALENCE: Use get_historical_impact_data to benchmark threats.
+       - TUNGUSKA LEVEL = 15 Megatons.
+       - CHELYABINSK LEVEL = 0.5 Megatons.
+    3. PROBABILITY/ASSESSMENT: If the user asks for "probability" or "risk", provide a 'Threat Equivalence' assessment. 
+       - E.g., "The current primary threat is 10x the energy of Tunguska, representing a critical risk."
+    4. TACTICAL: Use python_interpreter for advanced unit conversions (e.g., Megatons to Hiroshimas).
+    5. PRECISION: Provide results in Markdown and STOP.
     """,
     tools=[kinetic_tool, python_tool, historical_tool]
 )
@@ -47,12 +50,12 @@ analysis_specialist = Agent(
 # Step 4: Define the Briefing Specialist
 briefing_specialist = Agent(
     name="BriefingSpecialist",
-    model="gemini-2.5-flash",
+    model="gemini-1.5-flash",
     description="Military communications expert who summarizes threat tables into urgent executive briefings.",
     instruction="""
     SYSTEM ROLE: STRATEGIC COMMUNICATIONS.
     1. MISSION: Convert the analysis table into an urgent 3-point SITREP in ALL CAPS.
-    2. TACTICAL: If responding to a specific question or tactical order, provide a direct, concise answer instead of a 3-point SITREP.
+    2. TACTICAL: If the AnalysisSpecialist provided a historical comparison (Tunguska/Chelyabinsk), make sure to emphasize it.
     3. SIGNAL: Conclude with "--- MISSION COMPLETE ---" for the initial scan.
     4. FINAL: Once the response is delivered, state "TASK_FINISHED" to close the channel.
     """,
