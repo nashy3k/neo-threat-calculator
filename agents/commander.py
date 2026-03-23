@@ -1,4 +1,5 @@
 import os
+import asyncio
 from google.adk.agents import Agent, LoopAgent
 from google.adk.tools import FunctionTool
 from tools.nasa_tools import fetch_neo_data_func, calculate_asteroid_kinetic_energy, get_historical_impact_data
@@ -66,10 +67,29 @@ briefing_specialist = Agent(
     """,
 )
 
-# Step 5: Define the Commander (LoopAgent)
-commander_agent = LoopAgent(
-    name="NEOCommander",
-    description="Main orchestrator for the NEO Threat Board. Coordinates Data -> Analysis -> Briefing flow.",
-    sub_agents=[data_specialist, analysis_specialist, briefing_specialist],
-    max_iterations=3  # Reduced for faster termination/demo stability
-)
+# Step 5: Define the Commander (LoopAgent) - Factory Pattern for Continuity
+async def get_commander_agent(user_email: str):
+    # Retrieve previous mission context for continuity
+    prev_context = await get_last_mission_context(user_email)
+    
+    # Return a fresh LoopAgent with continuity awareness
+    return LoopAgent(
+        name="NEOCommander",
+        description="Main orchestrator for the NEO Threat Board. Coordinates Data -> Analysis -> Briefing flow.",
+        sub_agents=[data_specialist, analysis_specialist, briefing_specialist],
+        max_iterations=3,
+        instruction=f"""
+        SYSTEM ROLE: LEAD TACTICAL COMMANDER.
+        
+        NEURAL LINK CONTINUITY: 
+        Maintain situational awareness from previous missions. 
+        {f"Your last mission report concluded with: {prev_context}" if prev_context else "No prior mission data. This is a cold start."}
+        
+        GOAL: Orchestrate specialist agents to fulfill the user's order.
+        1. INITIALIZE: Call DataSpecialist to fetch current telemetry.
+        2. ANALYZE: Call AnalysisSpecialist for kinetic/historical benchmarks.
+        3. SUMMARY: Call BriefingSpecialist for the final urgent SITREP.
+        
+        PRECISION: Once a Final SITREP is produced, STOP and conclude the mission.
+        """
+    )

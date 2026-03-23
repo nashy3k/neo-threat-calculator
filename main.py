@@ -15,7 +15,7 @@ import datetime
 from config.secrets import get_secret
 from config.auth import oauth, verify_auth, get_allowed_users
 from config.database import log_user_login, log_mission_trace
-from agents.commander import commander_agent, PROJECT_ID, MODEL_ID
+from agents.commander import get_commander_agent, PROJECT_ID, MODEL_ID
 
 app = FastAPI(title="NEO Threat Tracker")
 
@@ -74,13 +74,41 @@ async def get_user(request: Request):
 async def health():
     return {"status": "operational", "project": PROJECT_ID, "agent": "NEOCommander"}
 
-@app.get("/info")
-async def get_info():
+@app.get("/api/info")
+async def get_info(user: dict = Depends(verify_auth)):
     return {
         "project": PROJECT_ID,
-        "model": MODEL_ID.upper(),
-        "version": "1.2.0-ALBETA"
+        "model": MODEL_ID,
+        "location": "us-central1",
+        "user": user["email"]
     }
+
+@app.get("/api/history")
+async def get_history(user: dict = Depends(verify_auth)):
+    """Fetch the last 10 mission logs for the current user."""
+    from config.database import db
+    try:
+        # Note: Requires a composite index (user_email ASC, timestamp DESC)
+        docs = db.collection("mission_logs")\
+                .where("user_email", "==", user["email"])\
+                .order_by("timestamp", direction="DESCENDING")\
+                .limit(10)\
+                .stream()
+        
+        history = []
+        for doc in docs:
+            data = doc.to_dict()
+            history.append({
+                "mission_id": doc.id,
+                "timestamp": data.get("timestamp"),
+                "order": data.get("order"),
+                "sitrep": data.get("sitrep"),
+                "steps": data.get("steps", [])
+            })
+        return history
+    except Exception as e:
+        print(f"Error fetching history: {e}")
+        return []
 
 # Global persistent services for in-memory session memory
 session_service = InMemorySessionService()
@@ -111,6 +139,13 @@ async def stream_assessment(
 
         yield f"data: {json.dumps({'type': 'log', 'content': '📡 NEURAL LINK ESTABLISHED. INITIALIZING ENGINE...', 'server_time': get_ts()})}\n\n"
         await asyncio.sleep(0.01)
+
+        user_email = user.get('email', 'anonymous')
+        commander_agent = await get_commander_agent(user_email)
+
+        # Rate Limiting: Introduce a "Neural Sync" delay to avoid 429 burst errors
+        yield f"data: {json.dumps({'type': 'log', 'content': '⏳ SYNCHRONIZING NEURAL LINK (Quota Mitigation)...', 'server_time': get_ts()})}\n\n"
+        await asyncio.sleep(1.5)
 
         runner = Runner(
             app_name="NEOThreatTracker",

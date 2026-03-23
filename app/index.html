@@ -440,8 +440,9 @@
                     document.getElementById('main-dashboard').style.visibility = 'visible';
                     document.getElementById('user-display').textContent = authData.user.email;
                     
-                    // Fetch System Info only after auth
+                    // Fetch System Info and History after auth
                     fetchInfo();
+                    loadMissionHistory();
                 } else {
                     document.getElementById('login-overlay').style.display = 'flex';
                     document.getElementById('main-dashboard').style.visibility = 'hidden';
@@ -453,12 +454,47 @@
 
         async function fetchInfo() {
             try {
-                const response = await fetch('/info');
+                const response = await fetch('/api/info');
                 const data = await response.json();
                 document.getElementById('project-display').textContent = data.project.toUpperCase();
                 document.getElementById('model-display').textContent = data.model;
             } catch (e) {
                 console.error("Failed to fetch system info:", e);
+            }
+        }
+
+        async function loadMissionHistory() {
+            try {
+                const response = await fetch('/api/history');
+                const history = await response.json();
+                
+                if (history && history.length > 0) {
+                    // Reverse to show oldest first in the log stream (natural reading order)
+                    history.reverse().forEach(mission => {
+                        const ts = mission.timestamp ? new Date(mission.timestamp).toLocaleTimeString() : 'PAST';
+                        appendLog(`RESTORING NEURAL LINK: "${mission.order}"`, 'action', 'history', ts);
+                        
+                        if (mission.steps && mission.steps.length > 0) {
+                            mission.steps.forEach(step => {
+                                appendLog(step.content, 'thought', step.agent === 'NEOCommander' ? 'system' : 'research', step.timestamp);
+                            });
+                        }
+                        
+                        if (mission.sitrep) {
+                            appendLog(mission.sitrep, 'final', 'briefing');
+                        }
+                        
+                        // Separator
+                        const hr = document.createElement('hr');
+                        hr.style.opacity = '0.1';
+                        hr.style.margin = '20px 0';
+                        logStream.appendChild(hr);
+                    });
+                    
+                    appendLog("HISTORICAL DATA RESTORED. SYSTEM SYNCHRONIZED.", "final");
+                }
+            } catch (e) {
+                console.error("Failed to load mission history:", e);
             }
         }
 
@@ -492,6 +528,9 @@
             } else if (role === 'research') {
                 color = '#f1c40f'; // Yellow (Math/Data)
                 prefix = '🔬';
+            } else if (role === 'history') {
+                color = '#7f8c8d'; // Grey (Archived)
+                prefix = '📚';
             } else if (type === 'action') {
                 prefix = '📡';
                 color = '#fff'; // White for user actions
