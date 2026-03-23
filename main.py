@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import StreamingResponse
+from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from agents.commander import commander_agent
 import os
@@ -36,7 +36,6 @@ app.add_middleware(
 
 @app.get("/")
 async def root():
-    from fastapi.responses import RedirectResponse
     return RedirectResponse(url="/static/index.html")
 
 @app.get("/login")

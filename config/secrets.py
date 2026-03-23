@@ -24,7 +24,9 @@ def get_secret(secret_id: str, project_id: str = None) -> str:
         return response.payload.data.decode("UTF-8")
     except Exception as e:
         print(f"WARNING: Could not fetch secret {secret_id} from Secret Manager: {str(e)}")
-        # Final fallback to DEMO values if it's the NASA key
+        # Final fallback to DEMO values if it's the NASA key or Session key
         if secret_id == "NASA_API_KEY":
             return "DEMO_KEY"
+        if secret_id == "SESSION_SECRET_KEY":
+            return "temporary-dev-session-key-2026"
         return ""
